@@ -1,0 +1,6 @@
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary n8n credentials
+.credentials.json

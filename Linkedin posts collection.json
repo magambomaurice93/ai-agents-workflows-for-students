@@ -1,0 +1,358 @@
+{
+  "name": "Linkedin posts collection",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        144,
+        112
+      ],
+      "id": "7f455e58-4b9e-4b0e-9c90-40593fdc79fb",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/LQQIXN9Othf8f7R5n/run-sync-get-dataset-items",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer apify_api_Yal1KtmeBehRqzR3jwIEroJj6nzM931zb04h"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"usernames\": [\"{{ $json['Linkedin url'] }}\"]\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        816,
+        -64
+      ],
+      "id": "574079c8-b960-4e63-ad93-a8d03a07d71d",
+      "name": "Profile Scraping"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "96a00fd4-c855-4b10-88ea-ee8d939ec849",
+              "leftValue": "={{ $json.stats.reposts }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        -64
+      ],
+      "id": "16cf5f98-6434-4ad1-ad47-8699765a2b45",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        592,
+        16
+      ],
+      "id": "0493c413-91df-4c40-b7a7-d6895acb43d7",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        -80
+      ],
+      "id": "6a9d39a1-a3a4-46de-84a9-2940d1b10842",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1bgrvgpUZ7Q9UfP9ZU1o4eogAjMc9JW0OOIApB7EsvLM",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bgrvgpUZ7Q9UfP9ZU1o4eogAjMc9JW0OOIApB7EsvLM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1bgrvgpUZ7Q9UfP9ZU1o4eogAjMc9JW0OOIApB7EsvLM/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        368,
+        16
+      ],
+      "id": "db636b3a-535e-433d-9673-eb98763f17c4",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tp0SUaI2MT6FLEUC",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1Xv9lvuBU_4ffxX8CEsTHR5_maDNtONhejoBzaIud0Wo",
+          "mode": "list",
+          "cachedResultName": "Linkedin post findings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xv9lvuBU_4ffxX8CEsTHR5_maDNtONhejoBzaIud0Wo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xv9lvuBU_4ffxX8CEsTHR5_maDNtONhejoBzaIud0Wo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "linkedin URL": "={{ $json.url }}",
+            "Creator Name": "={{ $json.author.first_name }} {{ $json.author.last_name }}",
+            "Caption/Text/Copy": "={{ $json.text }}",
+            "Reactions": "={{ $json.stats.total_reactions }}",
+            "Comments": "={{ $json.stats.comments }}",
+            "Reposts": "={{ $json.stats.reposts }}",
+            "Date and Time": "={{ $json.posted_at.date }}"
+          },
+          "matchingColumns": [
+            "linkedin URL"
+          ],
+          "schema": [
+            {
+              "id": "linkedin URL",
+              "displayName": "linkedin URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Creator Name",
+              "displayName": "Creator Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Caption/Text/Copy",
+              "displayName": "Caption/Text/Copy",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reactions",
+              "displayName": "Reactions",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Comments",
+              "displayName": "Comments",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reposts",
+              "displayName": "Reposts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date and Time",
+              "displayName": "Date and Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1264,
+        16
+      ],
+      "id": "cf1fbee3-3153-4f0b-986f-48da0e06b91d",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tp0SUaI2MT6FLEUC",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Profile Scraping": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Profile Scraping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6db72813-c496-4db2-9da2-419d2cba6d3e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6ccd63443c7fb25c0dac6f18a12b47604b22c8454725a5e4aaa8c6028553d2b9"
+  },
+  "id": "KsGtRwVAyJpBFJH3",
+  "tags": []
+}

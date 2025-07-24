@@ -1,42 +1,30 @@
-# ai-agents-workflows-for-students
-Automated AI agent workflow to collect, filter, and post high-engagement LinkedIn content using n8n and Apify integration.
+# AI Agents Workflows Collection
 
-# AI Agents Workflows for LinkedIn Content Automation
+This open-source repository contains a growing set of plug-and-play AI agent workflows built for practical automation. These workflows are created using **n8n**, **LangChain**, and other AI orchestration tools to showcase how intelligent agents can simplify real-world tasks.
 
-This repository contains an n8n-based workflow to automate the extraction, filtering, and enrichment of LinkedIn posts using AI agents and external APIs like Apify and Google Sheets.
+## 🧠 Current Workflows
 
-## 🔍 Overview
+### 1. 🔗 LinkedIn Scraper Agent
+Extracts profile and post data using the Apify API and logs high-performing posts into Google Sheets for analysis.
 
-- Scrapes public LinkedIn posts using Apify API
-- Filters posts with high repost counts (>100)
-- Logs key post data into a Google Sheet
-- Scheduled or manual trigger via n8n
-- Enables easy tracking of viral content trends
+### 2. 📧 Email Automatic Response Agent
+Monitors unread emails via Gmail, extracts the sender’s name using an AI information extractor, and can be configured to auto-generate context-aware responses using LLM prompts.
 
-## 🚀 Technologies Used
+> **Use case**: Perfect for managing high email volumes, support inboxes, or creating an AI auto-reply assistant.
 
-- [n8n](https://n8n.io/) — Automation workflow tool
-- [Apify](https://apify.com/) — Web scraping platform
-- Google Sheets — Data storage and manipulation
-- JavaScript / JSON — Workflow logic and formatting
+### 3. ✍️ AI Content Assistant (Coming Soon)
+Agent that generates content outlines, social media posts, or article drafts based on a topic prompt or recent activity.
 
-## 🧠 Use Cases
+### 4. 🧾 Academic Quiz Generator (Coming Soon)
+Reads learning content (e.g., lecture notes or documents) and generates quizzes or flashcards using prompt chaining and summarization agents.
 
-- AI content suggestion and scheduling
-- Trend analysis of LinkedIn activity
-- Corporate brand monitoring
-- Dataset generation for NLP fine-tuning
+## 🧰 Tools Used
 
-## 📂 Workflow Files
+- [n8n.io](https://n8n.io) – open-source workflow automation
+- Apify – scraping APIs
+- Gmail OAuth2 – secure email integration
+- LangChain & LLM Agents – AI orchestration
+- Google Sheets – data storage/output
 
-All workflows are stored under the `workflows/` directory.
+## 📂 Folder Structure
 
-## 📸 Preview
-
-![Workflow Preview](assets/preview.png)
-
----
-
-## ⚖️ License
-
-MIT License

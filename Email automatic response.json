@@ -1,0 +1,699 @@
+{
+  "name": "Email automatic response",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "readStatus": "unread"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2080,
+        192
+      ],
+      "id": "61268e25-1b7b-4e92-b7d5-89f5d3dfc41b",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.from.value[0].name }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "senderName",
+              "description": "Extract the sender's name from the email. If the name is not available, return an empty string.",
+              "required": true
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "You are an extraction expert. Identify and extract only the key information from the text. If a required attribute is not present, return an empty string as its value."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1,
+      "position": [
+        -1856,
+        192
+      ],
+      "id": "7210524a-08f3-4707-b202-ce946e79dcda",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1840,
+        384
+      ],
+      "id": "d955f901-f591-4297-9e45-fc474369dad6",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "CnPsPdFlFHOFfmId",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "efaf396c-e36b-4369-b904-4726787fa9b7",
+              "leftValue": "={{ $json.output.senderName }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1504,
+        192
+      ],
+      "id": "26332a17-5bd5-4cb6-8580-44a1b29a0061",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9472688f-14a8-415c-864e-1ad245ff0d6d",
+              "name": "introduction",
+              "value": "Hey,",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1280,
+        320
+      ],
+      "id": "e0a162de-5435-4e37-8b14-508b287507cb",
+      "name": "No Name"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2a305a52-3ce0-4586-a900-038a6612178e",
+              "name": "introduction",
+              "value": "=Dear {{ $json.output.senderName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1280,
+        64
+      ],
+      "id": "c5504652-b04a-4c04-9e1b-8c77f74f2475",
+      "name": "Name Found"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "introduction",
+        "joinMode": "keepNonMatches",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        -1008,
+        208
+      ],
+      "id": "62e50c84-b4c2-4151-b923-3619eccfdca7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1d374039-a5c3-4047-b19c-4d05f485cceb",
+              "name": "introduction",
+              "value": "={{ $json.introduction }}",
+              "type": "string"
+            },
+            {
+              "id": "eafcf4be-81e1-42af-83e7-1407680585fc",
+              "name": "emailBody",
+              "value": "={{ $('Gmail Trigger').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "0f9e0296-2c71-47d9-a526-b29ca30a41d2",
+              "name": "messageId",
+              "value": "={{ $('Gmail Trigger').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "ea2e0681-abb6-49ae-92f5-aa08f6c1cb79",
+              "name": "threadId",
+              "value": "={{ $('Gmail Trigger').item.json.threadId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -784,
+        208
+      ],
+      "id": "a561cfc0-199b-4489-afbf-a2ee7765aeda",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.emailBody }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Course Requests",
+              "description": "This includes inquiries about course services, pricing, availability, or related details."
+            },
+            {
+              "category": "Consultation Requests",
+              "description": "This includes scheduling initial consultations or follow-up appointments."
+            },
+            {
+              "category": "Payments",
+              "description": "Inquiries about paid collab, payments, or refund requests."
+            },
+            {
+              "category": "Miscellaneous",
+              "description": "Emails that don't fall into any of the predefined categories."
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "Please share with me the specific {categories} that you would like to use so I can perform the analysis correctly. Once you have provided the categories, I will deliver the answer in JSON format, without explanations."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        208
+      ],
+      "id": "ad1de520-a78c-4d35-92a7-116ade2828ee",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -544,
+        528
+      ],
+      "id": "019d378a-a2ab-499a-9d85-bf8dc0719f33",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "CnPsPdFlFHOFfmId",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": [
+          "Label_6737448057145800714"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        368
+      ],
+      "id": "8737aeb8-4a1b-4a1b-9656-6209d8fcbd74",
+      "name": "Add label to message2",
+      "webhookId": "af462a09-091d-4ffa-9c2a-2d9dd1f15f88",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": [
+          "CATEGORY_PROMOTIONS"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        544
+      ],
+      "id": "6f01f7ff-b619-4acd-b22b-703471f4e391",
+      "name": "Add label to message3",
+      "webhookId": "af462a09-091d-4ffa-9c2a-2d9dd1f15f88",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.id }}",
+        "emailType": "text",
+        "message": "={{ $('Text Classifier').item.json.introduction }}\n\nThank you for contacting Lead Gen Man! We're excited to learn more about your needs and discuss how we can help you.\n\nYour request has been received, and a member of our team is reviewing the details. We'll get back to you within 24 hours with more information.\n\nIn the meantime, feel free to visit our website to learn more about our services, or contact us via WhatsApp: www.leadgenman.com\n\nWe look forward to connecting with you!\n\nBest regards,\nManthan Patel\nFounder & CEO of Lead Gen Man",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "f65c9a8d-e359-4b7a-bb61-6d897549f7b1",
+      "name": "Reply to a message",
+      "webhookId": "b02440bb-d0ae-4f5e-a0f0-bd46c75ffb74",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.id }}",
+        "emailType": "text",
+        "message": "={{ $('Text Classifier').item.json.introduction }}\n\nThank you for contacting us regarding your paid collab/billing inquiry. \n\nA member of our team will reach out to you within 2 business days to provide the necessary information or assistance.\n\nIf this is an urgent matter, please call us directly at +123456789.\n\nThank you for your patience and for choosing Lead Gen Man.\n\nBest regards,\nManthan Patel\nFounder & CEO of Lead Gen Man",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        288,
+        384
+      ],
+      "id": "3b6f7df8-8893-43e1-a3c7-06231ff58231",
+      "name": "Reply to a message2",
+      "webhookId": "b02440bb-d0ae-4f5e-a0f0-bd46c75ffb74",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.messageId }}",
+        "labelIds": [
+          "Label_7968086150822735646"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f368d6ef-0652-4f21-8936-3fc0f1117e1c",
+      "name": "Add label to message",
+      "webhookId": "af462a09-091d-4ffa-9c2a-2d9dd1f15f88",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.id }}",
+        "emailType": "text",
+        "message": "={{ $('Text Classifier').item.json.introduction }}\n\nThank you for contacting Lead Gen Man. We're excited to learn more about your needs and discuss how we can help you.\n\nTo schedule your consultation, please reply to this email with your preferred date and time, or use our online booking link here: https://cal.com/leadgenman.\n\nOnce we receive your preferred time, we'll confirm the appointment or suggest alternative options if needed.\n\nIf you have specific topics you'd like to discuss during the consultation, feel free to mention them in your reply.\n\nWe look forward to connecting with you!\n\nBest regards,\nManthan Patel\nFounder & CEO of Lead Gen Man",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        272,
+        192
+      ],
+      "id": "e665d0c1-ee23-4dc5-85be-18a25b46c659",
+      "name": "Reply to a message1",
+      "webhookId": "b02440bb-d0ae-4f5e-a0f0-bd46c75ffb74",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_6706004177450159284"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        192
+      ],
+      "id": "2bdce840-6b81-46a3-8683-5695c86c8d33",
+      "name": "Add label to message1",
+      "webhookId": "af462a09-091d-4ffa-9c2a-2d9dd1f15f88",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7YMsSvfUUK3e5wcA",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Gmail Trigger": [
+      {
+        "json": {
+          "id": "1983434a58eac562",
+          "threadId": "1983434a58eac562",
+          "labelIds": [
+            "UNREAD",
+            "CATEGORY_PERSONAL",
+            "INBOX"
+          ],
+          "sizeEstimate": 5956,
+          "headers": {
+            "delivered-to": "Delivered-To: moris.magambowqu@gmail.com",
+            "received": "Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])\r\n        by mx.google.com with SMTPS id a640c23a62f3a-af18866ccc8sor171492066b.13.2025.07.22.15.15.21\r\n        for <moris.magambowqu@gmail.com>\r\n        (Google Transport Security);\r\n        Tue, 22 Jul 2025 15:15:21 -0700 (PDT)",
+            "x-received": "X-Received: by 2002:a17:907:2d27:b0:ae3:cd73:efde with SMTP id\r\n a640c23a62f3a-af2f8e4d729mr50159566b.44.1753222521028; Tue, 22 Jul 2025\r\n 15:15:21 -0700 (PDT)",
+            "arc-seal": "ARC-Seal: i=1; a=rsa-sha256; t=1753222521; cv=none;\r\n        d=google.com; s=arc-20240605;\r\n        b=dgPifpAKuBGTADv+W03TiKStwpanQxpDtoi0mVv5p2whV9qsUDB/TJ9ipBwnoXSP7D\r\n         CjQU49/ZTWscxYXDDipv14g90QHAxxk7Mr8lEjbt9UIt6xDR7oA7dGeP6p55sqKbf4ym\r\n         f6WMH4xWDM7cBqkV99W63mTsBwIcWcrtseJWarHaogiQQDgGJBaznQ4R0KSsWFArDJ9C\r\n         zBbdyyCJ5tNTTg04DgFU/4lgz/PQPEozP7lmIsosagpXyugJzRnOd9fbK3eTnmLtDLE1\r\n         2DIgo1VIuLVFNKK9S8GHQ5eywImgT7/qrvIHgMvwOzJYSd+SLNIoWSa5hrQkwqgocyqH\r\n         lbyg==",
+            "arc-message-signature": "ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;\r\n        h=to:subject:message-id:date:from:mime-version:dkim-signature;\r\n        bh=JoHGGC3dMEGeXCT6iXa0IiLtEukMJ5PlOR3HZtNFHoo=;\r\n        fh=DOsf7hVm3S/EIG+OTE+GkJynSTmam20w5rECRJ9HmU8=;\r\n        b=QxJQ+UAFMk31hQbq9Za/5bmUSTv7WCWdezHPQCW/LchZT885w/OixTRXfViD7nBbkO\r\n         tB9tey7fb3IBrHjEw77DYX0PZszBWCum0otsBuwqqls4brqpxdqsXpbpdCrrqTsh42db\r\n         M0/pbUs75e1JsU+v3VimoBLeFEscSfHoDXsQPy/bq0pCif3UIlkuV7N8DxO61godmy8X\r\n         Tz6ZA4u9Za/4p4AfcpbxLgHfvX2Dt8NQP9X+68rrO9ehCQsBEgn97hr53RWznUJAZih5\r\n         XHt5Ghj9nGAvDEyp4Bkd3kecApYdRQ77wJDo8zLHLjaBrRLf+GJp2FSTpug3Q4ani+i0\r\n         kmJg==;\r\n        dara=google.com",
+            "arc-authentication-results": "ARC-Authentication-Results: i=1; mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=Q2X9pgQj;\r\n       spf=pass (google.com: domain of sahiilmaurice93@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=sahiilmaurice93@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "return-path": "Return-Path: <sahiilmaurice93@gmail.com>",
+            "received-spf": "Received-SPF: pass (google.com: domain of sahiilmaurice93@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;",
+            "authentication-results": "Authentication-Results: mx.google.com;\r\n       dkim=pass header.i=@gmail.com header.s=20230601 header.b=Q2X9pgQj;\r\n       spf=pass (google.com: domain of sahiilmaurice93@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=sahiilmaurice93@gmail.com;\r\n       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;\r\n       dara=pass header.i=@gmail.com",
+            "dkim-signature": "DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=gmail.com; s=20230601; t=1753222521; x=1753827321; dara=google.com;\r\n        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject\r\n         :date:message-id:reply-to;\r\n        bh=JoHGGC3dMEGeXCT6iXa0IiLtEukMJ5PlOR3HZtNFHoo=;\r\n        b=Q2X9pgQjy6gjfNNYYuULN9lB4glI8/RGsu2JilirrY6OpN/WKb9mRufg27IIvIEPb1\r\n         7yl7Y7bVEFcgDGRrYRPcIxXpDYoS7BoJ33QPuwSlQu1W1RardNk/f0WsS3qXiF/ldg15\r\n         21xJWzPg9cF+HSumiq+3vPLFGMrUGcDB6evdXjUacYykCH6Dy6DBXboPT1T04thJWsNj\r\n         OHHBeybhR5dcIpCOE15qTgykfSpDMD2AIA/r6JmXluJirBzfXLaInTPugWc+sd54KGZN\r\n         gCzB3NrFCa1jtG8EEVFX8J3NK3hXX8AdnUmGbreC6hKG4LNv2FRc5SuZymlYJkIhiQNr\r\n         lWpQ==",
+            "x-google-dkim-signature": "X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;\r\n        d=1e100.net; s=20230601; t=1753222521; x=1753827321;\r\n        h=to:subject:message-id:date:from:mime-version:x-gm-message-state\r\n         :from:to:cc:subject:date:message-id:reply-to;\r\n        bh=JoHGGC3dMEGeXCT6iXa0IiLtEukMJ5PlOR3HZtNFHoo=;\r\n        b=HQ/miIjPtHqC4UzauRc5zhAoh4vEFaPh0jIacZhnsg4daENDiQ09MZ0dYUy0jRqh/h\r\n         3jjqiK7F/vkvYX9EFq0cxqFGuQogUefx9stBbgFsd7KrD8CgmCmlhvCgIF5Rg0lCQP75\r\n         NuChCtnp5jn54pwAtxfhvw1Rudd5KX7ik09yFC4AtON3pCjY03tjiyWuDxkBUFpKvvxQ\r\n         kdIdmi+KdqmHt8DP4Dg6tJIAhLZoZg0iWf9uBgaZVqBKaMouuCV7yB9VH0zlLlxyouaV\r\n         Zbz1zJ1m9JJyWxdEErK83XWO7u/0aYxwOz1r6kMpq2D6MrSfYUT58CHizeora+OI0OTa\r\n         ZkGg==",
+            "x-gm-message-state": "X-Gm-Message-State: AOJu0YxRBhL3BLmRmelShwJcqiy6BTRdUOqSoLuFznvaHk8WxQJjY7Md\r\n\tI9iPIeqSYtpMi7MU4oHEismE9gsmqN6NR4whb5qxit/oFU/9aMq6YgyUYmLwS0/HpYoJZ4Uwgcg\r\n\tyPDgXuevMZ1Deo/7sJB8B/9AIITf5rZDNLeqo",
+            "x-gm-gg": "X-Gm-Gg: ASbGnctMkWdacjmG/pug6T2IRZRWtonipEHdnFmNO7ziOBDi/T6yrun5u0TchJ7mSMs\r\n\tWxakXlXdHWnYYEiCf9UciIhkChIFdjzGnB/km7/XL9FE0txIphvzWTayFRWrgl4OA7tqQUuHnyi\r\n\t3wJXppwJGH3KkOFKYvKNoTXT7FK3nxs74oie54Jq7/E8DJsi3eyRSLwXhQ2SVZCmSHfU+23/laO\r\n\tPgjYqM=",
+            "x-google-smtp-source": "X-Google-Smtp-Source: AGHT+IH4SUjhoffhFFWUjjYZWYPQ9lZlZUmzGqBwVY0cY0EoFHwty6/OHfjlpdZehi9+Qynw+dcziVB7uoR4kNRADPA=",
+            "mime-version": "MIME-Version: 1.0",
+            "from": "From: Sahiil Maurice <sahiilmaurice93@gmail.com>",
+            "date": "Date: Wed, 23 Jul 2025 01:15:08 +0300",
+            "x-gm-features": "X-Gm-Features: Ac12FXw_q1BIzqIh2C3bqYHP9bylUIkBSLTZfBQeFRG8nj5CPz93rLx-IrZWkBQ",
+            "message-id": "Message-ID: <CAJcsvVMNtTwW5VVBouFL2bpKTzRKeFLimRWqPjVjS7PmtFgeNQ@mail.gmail.com>",
+            "subject": "Subject: COURSE ASSISTANCE",
+            "to": "To: \"moris.magambowqu@gmail.com\" <moris.magambowqu@gmail.com>",
+            "content-type": "Content-Type: multipart/alternative; boundary=\"00000000000094058e063a8bed7a\""
+          },
+          "html": "<div dir=\"ltr\">Dear Moris.<div><br></div><div>i want you to help me and start couching me regularly using your notes</div><div><br></div><div>Regards,</div><div>magambo</div></div>\n",
+          "text": "Dear Moris.\n\ni want you to help me and start couching me regularly using your notes\n\nRegards,\nmagambo\n",
+          "textAsHtml": "<p>Dear Moris.</p><p>i want you to help me and start couching me regularly using your notes</p><p>Regards,<br/>magambo</p>",
+          "subject": "COURSE ASSISTANCE",
+          "date": "2025-07-22T22:15:08.000Z",
+          "to": {
+            "value": [
+              {
+                "address": "moris.magambowqu@gmail.com",
+                "name": ""
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><a href=\"mailto:moris.magambowqu@gmail.com\" class=\"mp_address_email\">moris.magambowqu@gmail.com</a></span>",
+            "text": "moris.magambowqu@gmail.com"
+          },
+          "from": {
+            "value": [
+              {
+                "address": "sahiilmaurice93@gmail.com",
+                "name": "Sahiil Maurice"
+              }
+            ],
+            "html": "<span class=\"mp_address_group\"><span class=\"mp_address_name\">Sahiil Maurice</span> &lt;<a href=\"mailto:sahiilmaurice93@gmail.com\" class=\"mp_address_email\">sahiilmaurice93@gmail.com</a>&gt;</span>",
+            "text": "\"Sahiil Maurice\" <sahiilmaurice93@gmail.com>"
+          },
+          "messageId": "<CAJcsvVMNtTwW5VVBouFL2bpKTzRKeFLimRWqPjVjS7PmtFgeNQ@mail.gmail.com>"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Name Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Name Found": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Name": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message2": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message1": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "adba81f0-0204-4f30-9f64-39ef883a2235",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6ccd63443c7fb25c0dac6f18a12b47604b22c8454725a5e4aaa8c6028553d2b9"
+  },
+  "id": "lfQ90B1MKFAxwCUG",
+  "tags": []
+}
